@@ -6,8 +6,8 @@ def seirx_model(seirx, t, parameters):
     s, e, i, r, x = seirx
 
     # transformed_x represents the portion of population that is willing to comply with NPIs
-    transformed_x = 0.5 * np.tanh(parameters['re'] * x) + 0.5   # apply the coeff of effectiveness, then transform to [0,1]
-    lambdat = parameters['beta_naught'] * (1- transformed_x)
+    transformed_x = 0.5 * np.tanh(parameters['re'] * x) + 0.5   # transform to [0,1]
+    lambdat = parameters['beta_naught'] * (1 - transformed_x)
     ds = parameters['pi'] - lambdat * s * i - parameters['mu'] * s
     de = lambdat * s * i - (parameters['kappa'] + parameters['mu']) * e
     di = parameters['kappa'] * e - (parameters['gamma'] + parameters['mu']) * i
@@ -32,7 +32,7 @@ def solve_seirx_model(re = 1, rf = 0.01):
     s0, e0, i0, r0 = 0.995, 0, 0.005, 0
     transformed_x0 = 0.8
     x0 = np.arctanh(2 * transformed_x0 - 1) / parameters['re']  # transform back to [-inf, inf]
-    print(0.5 * np.tanh(parameters['re'] * x0) + 0.5)
+    # x0=0.8
 
 
     start_time = 0
@@ -45,15 +45,15 @@ def solve_seirx_model(re = 1, rf = 0.01):
 
 
 
-#t = np.linspace(0, 1000, 1001)
+t = np.linspace(0, 1000, 1001)
 
-# plt.figure(1)
-# plt.plot(t, solve_seirx_model()[:, 0], label = 'S')
-# plt.plot(t, solve_seirx_model()[:, 1], label = 'E')
-# plt.plot(t, solve_seirx_model()[:, 2], label = 'I')
-# plt.plot(t, solve_seirx_model()[:, 3], label = 'R')
-# #plt.plot(t, solve_seirx_model()[:, 4], label = 'X')
-# plt.plot(t, 0.5 * np.tanh(solve_seirx_model()[:, 4]) + 0.5, label = 'transformed x')
-# plt.legend()
+plt.figure(1)
+plt.plot(t, solve_seirx_model()[:, 0], label = 'S')
+plt.plot(t, solve_seirx_model()[:, 1], label = 'E')
+plt.plot(t, solve_seirx_model()[:, 2], label = 'I')
+plt.plot(t, solve_seirx_model()[:, 3], label = 'R')
+#plt.plot(t, solve_seirx_model()[:, 4], label = 'X')
+plt.plot(t, 0.5 * np.tanh(solve_seirx_model()[:, 4]) + 0.5, label = 'transformed x')
+plt.legend()
 
-# plt.show()
+plt.show()

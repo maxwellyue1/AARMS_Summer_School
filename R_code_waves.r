@@ -36,7 +36,7 @@ seirmod=function(t, y, parms){
 
 
 times  = seq(0, 10000, by=1)
-parms  = c(beta=1.1, kappa=1/6, gamma=1/6, mu=1)
+parms  = c(beta=1.1, kappa=1/6, gamma=1/6, mu=0.8)
 start = c(S=0.95, E= 0, I=0.05, R = 0, x = 0.8)
 
 
@@ -44,7 +44,7 @@ out = ode(y = start, times = times, func = seirmod,
           parms = parms, maxsteps = 1000, method = "ode45")
 out = as.data.frame(out)
 
-out$x <- 0.5 * tanh(out$x) + 0.5
+out$x <-  0.5 * tanh(out$x) + 0.5
 
 
 plot(x = out$time, y = out$I, col = "black", ylab = "Fraction of individuals", 
