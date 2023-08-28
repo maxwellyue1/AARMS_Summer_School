@@ -32,7 +32,7 @@ def solve_seirx_model(re = 1, rf = 0.01):
     s0, e0, i0, r0 = 0.995, 0, 0.005, 0
     transformed_x0 = 0.8
     x0 = np.arctanh(2 * transformed_x0 - 1) / parameters['re']  # transform back to [-inf, inf]
-    print(x0)
+    print(0.5 * np.tanh(parameters['re'] * x0) + 0.5)
 
 
     start_time = 0
