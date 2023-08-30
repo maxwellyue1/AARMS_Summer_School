@@ -1,0 +1,101 @@
+---
+title: "AARMS_Project_2023"
+output: html_document
+date: "2023-08-23"
+---
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+require(deSolve)
+require(rmarkdown)
+require(ggplot2)
+require(dplyr)
+library(data.table)
+library(magrittr)
+library(fasstr)
+```
+##Base Model
+
+First we code the base compartmental model, adding in the dynamics of NPI adherence
+
+```{r}
+seirmod=function(t, y, parms){
+  #Pull state variables from y vector
+  S=y[1]
+  E=y[2]
+  I=y[3]
+  R=y[4]
+  x=y[5]
+  #Pull the required parameter values from the parms vector
+  beta=parms["beta"]
+  kappa=parms["kappa"]
+  gamma=parms["gamma"]
+  mu=parms["mu"]
+  f=parms["f"]
+  #Define the equations 
+  lambda = (beta*(1-mu*(0.5*tanh(x)+0.5)))
+  dS = -lambda*S*I
+  dE = lambda*S*I - kappa*E
+  dI = kappa*E - gamma*I
+  dR = gamma*I
+  dx = (-f + beta*I)
+  res=c(dS, dE, dI, dR, dx)
+  #Return list of gradients
+  list(res)
+}
+```
+
+```{r}
+#Set time sequence and parameters
+times  = seq(0, 10000, by=1)
+parms  = c(beta=1.1, kappa=1/6, gamma=1/8, mu=0.9, f=0.01)
+start = c(S=0.95, E= 0, I=0.05, R = 0, x = 0.8) #Make sure that the S,E,I,R values are proportions of the population
+```
+
+```{r}
+#Solve the system
+out = ode(y = start, times = times, func = seirmod, 
+          parms = parms, maxsteps = 1000, method = "ode45")
+out=as.data.frame(out)
+#Transform x in data frame for plotting
+out$x <- 0.5*tanh(out$x)+0.5
+```
+
+```{r}
+#Plotting SEIR
+plot(x = out$time, y = out$I, col = 1, ylab = "Fraction of individuals", xlab = "Time (days)", type = "l", xlim = c(0, 1000), ylim = c(0,1))
+    lines(x = out$time, y = out$S, col =2)
+    lines(x = out$time, y = out$E, col =3)
+    lines(x = out$time, y = out$R, col =4)
+#You may have to change axis limits depending on what parameter values you chose
+```
+
+```{r}
+#Plotting EI closeup!
+plot(x = out$time, y = out$I, col = 1, ylab = "Fraction of individuals", xlab = "Time (days)", type = "l", xlim = c(0, 1000), ylim = c(0,0.1))
+    lines(x = out$time, y = out$E, col =3)
+#You may have to change axis limits depending on what parameter values you chose
+```
+
+```{r}
+#Plotting the percentage of the total population that complies with NPIs over time
+plot(x = out$time, y = out$x, col = 1, ylab = "Percentage of Adherence to NPIs", xlab = "Time (days)", type = "l", xlim = c(0, 1000), ylim = c(0,1))
+```
+#Extra 
+
+This is if you want to get the Ontario 2020 case data to see some real data waves!
+```{r}
+Sum_Daily_Cases <- function(PHU_Case_Numbers) {
+    df_tmp <- data.frame("onset_date" = PHU_Case_Numbers$Case_Reported_Date, "case_count" = 1)
+    PHU_daily_cases <- df_tmp %>% group_by(onset_date) %>% summarise_all(sum)
+}
+```
+
+```{r}
+case_data <- read.csv('C:/Users/rhian/Desktop/S23/AARMS-Summer School/Ontario_case_data.csv')
+ON_daily_cases  = Sum_Daily_Cases (case_data)
+ON_daily_cases$case_count = ON_daily_cases$case_count/15000000
+plot(seq(1,665,1),t(ON_daily_cases[1:665,2]), col="red", xlab = "Dates",ylab = "Daily ON Cases")
+```
+
+
